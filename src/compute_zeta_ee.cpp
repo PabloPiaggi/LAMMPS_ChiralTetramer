@@ -37,6 +37,7 @@ ComputeZetaEE::ComputeZetaEE(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   extscalar = 1;
 
+  nmax = 0;
   // setup necessary array	
   zeta = NULL;
 
@@ -98,9 +99,16 @@ void ComputeZetaEE::updatezeta()
   int *ilist,*jlist,*numneigh,**firstneigh;
   int **dihedrallist = neighbor->dihedrallist;
   int ndihedrallist = neighbor->ndihedrallist;
- 
-  nmax = atom->nmax;
-  memory->create(zeta,nmax,"zeta/ee:zeta");
+
+  // grow local zeta array if necessary
+  // needs to be atom->nmax in length
+
+  if (atom->nmax > nmax) {
+    memory->destroy(zeta);
+    nmax = atom->nmax;
+    memory->create(zeta,nmax,"zeta/ave:zeta");
+    vector_atom = zeta;
+  }
 
   // initialize zeta/dzeta arrays to zero
   if (newton_bond) {
