@@ -29,6 +29,8 @@
 #include "error.h"
 #include "neighbor.h" 
 #include "molecule.h" 
+#include "update.h"
+#include "string.h"
 
 using namespace LAMMPS_NS;
 
@@ -114,6 +116,15 @@ void PairLJSmoothLinearChiral::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+
+  // Check if skin is large enough to include whole tetramers
+  // In LJ units 1.5 sigma is a good choice
+  double skin = neighbor->skin;
+  if (strcmp(update->unit_style,"lj") == 0) {
+    if (skin < sigma[1][1]*1.5) {
+      error->all(FLERR,"Neighbor list skin is too small - increase it above 1.5 sigma - use, for instance, 'neighbor        1.5 bin'");
+    }
+  }
 
   // zero energy
   evdwl = 0.0;
